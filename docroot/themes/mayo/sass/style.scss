@@ -2,13 +2,14 @@
 // Imports
 // ====================================================================
 
-@import "compass";
+// @import "compass";
 @import "partials/variables";
 @import "partials/mixins";
 @import "partials/normalize";
 @import "partials/base";
 @import "partials/layout";
 @import "partials/style-settings";
+@import "style_custom";
 
 .spacer {
   display: block;
