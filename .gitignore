@@ -10,3 +10,5 @@
 
 # Ignore Composer-managed dependencies.
 vendor/
+
+.idea
