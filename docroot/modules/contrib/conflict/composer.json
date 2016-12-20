@@ -1,0 +1,8 @@
+{
+  "name": "drupal/conflict",
+  "description": "Find merge conflicts in revisionable entities.",
+  "type": "drupal-module",
+  "require": {
+    "graphp/algorithms": "~0.8.1"
+  }
+}

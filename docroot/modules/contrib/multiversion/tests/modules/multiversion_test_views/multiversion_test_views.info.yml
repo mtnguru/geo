@@ -1,0 +1,18 @@
+name: 'Multiversion test views'
+type: module
+description: 'Provides default views for views multiversion tests.'
+package: Testing
+# version: VERSION
+# core: 8.x
+dependencies:
+  - multiversion
+  - node
+  - comment
+  - views
+  - language
+
+# Information added by Drupal.org packaging script on 2016-10-26
+version: '8.x-1.0-alpha12'
+core: '8.x'
+project: 'multiversion'
+datestamp: 1477470562

@@ -1,0 +1,5 @@
+module_filter.settings:
+  title: Module filter
+  description: 'Configure how the modules page looks and acts.'
+  route_name: module_filter.settings
+  parent: system.admin_config_ui

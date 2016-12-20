@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * @file
+ * This is the file description for Module Filter module.
+ *
+ * In this more verbose, multi-line description, you can specify what this
+ * file does exactly. Make sure to wrap your documentation in column 78 so
+ * that the file can be displayed nicely in default-sized consoles.
+ *
+ * @author skrasulevskiy
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function module_filter_form_system_modules_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  $module_handler = \Drupal::moduleHandler();
+  $config = \Drupal::config('module_filter.settings');
+  // Don't alter the form when confirming.
+  if (isset($form['confirm'])) {
+    return;
+  }
+
+  $form['module_filter'] = array(
+    '#type' => 'module_filter',
+    '#attached' => array(
+      'library' => array(
+        'module_filter/drupal.module_filter.modules',
+      ),
+    ),
+  );
+
+  $checkbox_defaults = array(
+    ((isset($_GET['enabled'])) ? $_GET['enabled'] : 1) ? 'enabled' : '',
+    ((isset($_GET['disabled'])) ? $_GET['disabled'] : 1) ? 'disabled' : '',
+    ((isset($_GET['required'])) ? $_GET['required'] : 1) ? 'required' : '',
+    ((isset($_GET['unavailable'])) ? $_GET['unavailable'] : 1) ? 'unavailable' : ''
+  );
+
+  $form['module_filter']['show'] = array(
+    '#type' => 'checkboxes',
+    '#default_value' => array_filter($checkbox_defaults),
+    '#options' => array('enabled' => t('Enabled'), 'disabled' => t('Disabled'), 'required' => t('Required'), 'unavailable' => t('Unavailable')),
+    '#prefix' => '<div id="module-filter-show-wrapper">',
+    '#suffix' => '</div>'
+  );
+
+  if ($config->get('module_filter_tabs')) {
+    $form['module_filter']['#attached']['library'][] = 'module_filter/drupal.module_filter.tab';
+
+    if (!$module_handler->moduleExists('page_actions') && $config->get('module_filter_dynamic_save_position')) {
+      $form['module_filter']['#attached']['library'][] = 'module_filter/drupal.module_filter.dynamic_position';
+    }
+
+    $form['module_filter']['#attached']['library'][] = 'module_filter/drupal.module_filter.module';
+    $form['#theme'] = 'module_filter_system_modules_tabs';
+  }
+
+  array_unshift($form['#submit'],'module_filter_system_modules_submit_redirect');
+
+  if ($config->get('module_filter_track_recent_modules')) {
+    $form['#submit'][] = 'module_filter_system_modules_submit_recent';
+  }
+}
+
+/**
+ * Custom submit for redirect.
+ */
+function module_filter_system_modules_submit_redirect($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  $query = array();
+  $module_filter = $form_state->getValue('module_filter');
+
+  if (!empty($module_filter['name'])) {
+    $query['filter'] = $module_filter['name'];
+  }
+  $query['enabled'] = (int)(!empty($module_filter['show']['enabled']));
+  $query['disabled'] = (int)(!empty($module_filter['show']['disabled']));
+  $query['required'] = (int)(!empty($module_filter['show']['required']));
+  $query['unavailable'] = (int)(!empty($module_filter['show']['unavailable']));
+
+  $form_state->setRedirect('system.modules_list', $query);
+}
+
+/**
+ * Custom submit for recent modules.
+ */
+function module_filter_system_modules_submit_recent($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  $config = \Drupal::service('config.factory')->getEditable('module_filter.settings');
+  $recent_modules = $config->get('module_filter_recent_modules');
+
+  foreach ($form_state->getValue('modules') as $package => $modules) {
+    foreach ($modules as $key => $module) {
+      if ($form['modules'][$package][$key]['enable']['#default_value'] != $module['enable']) {
+        $recent_modules[$key] = REQUEST_TIME;
+      }
+    }
+  }
+
+  $config->set('module_filter_recent_modules', $recent_modules)->save();
+}
+
+/**
+ * Implements hook_theme().
+ */
+function module_filter_theme() {
+  return array(
+    'module_filter' => array(
+      'render element' => 'element',
+      'file' => 'module_filter.theme.inc',
+    ),
+    'module_filter_system_modules_tabs' => array(
+      'render element' => 'form',
+      'file' => 'module_filter.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Helper function for filtering new modules.
+ *
+ * @return array
+ */
+function _module_filter_new_modules() {
+  // Get current list of modules.
+  $files = system_rebuild_module_data();
+
+  // Remove hidden modules from display list.
+  $visible_files = $files;
+  foreach ($visible_files as $filename => $file) {
+    if (!empty($file->info['hidden'])) {
+      unset($visible_files[$filename]);
+    }
+  }
+
+  uasort($visible_files, 'system_sort_modules_by_info_name');
+
+  $new_modules = array();
+  foreach ($visible_files as $filename => $module) {
+    $ctime = filectime(dirname($module->getPathname()) . '/' . $filename . '.info.yml');
+    if (($ctime - strtotime('-1 week')) > 0) {
+      $new_modules[$filename] = _module_filter_get_id($filename);
+    }
+  }
+  return $new_modules;
+}
+
+/**
+ * Helper function for retrieving module id.
+ *
+ * @param $text
+ * @return string
+ */
+function _module_filter_get_id($text) {
+  $id = strtolower($text);
+  $id = preg_replace('/([^a-z0-9]+)/', '-', $id);
+  return trim($id, '-');
+}
+
+/**
+ * Helper function for filtering recent modules.
+ *
+ * @param $var
+ * @return bool
+ */
+function _module_filter_recent_filter($var) {
+  return (!($var < REQUEST_TIME - 60*60*24*7));
+}

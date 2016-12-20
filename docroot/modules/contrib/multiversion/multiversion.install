@@ -1,0 +1,177 @@
+<?php
+
+use Drupal\multiversion\Entity\Workspace;
+use Drupal\Core\Database\Database;
+use \Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\multiversion\MultiversionMigration;
+
+/**
+ * Implements hook_install().
+ */
+function multiversion_install() {
+  // Create default workspace.
+  Workspace::create(['machine_name' => 'live', 'label' => 'Live', 'type' => 'basic'])->save();
+  /** @var \Drupal\multiversion\MultiversionManagerInterface $manager */
+  $manager = \Drupal::getContainer()->get('multiversion.manager');
+  $manager->enableEntityTypes();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function multiversion_uninstall() {
+  \Drupal::state()->delete('multiversion_enabled');
+}
+
+/**
+ * Add workspace field to data_field and revision_field tables and migrate data.
+ */
+function multiversion_update_8001() {
+  $connection = Database::getConnection();
+  if ($connection instanceof Connection) {
+    $schema = $connection->schema();
+    $entity_manager = \Drupal::service('entity.manager');
+    $manager = \Drupal::service('multiversion.manager');
+
+    // Find all supported entities.
+    $entities = $manager->getSupportedEntityTypes();
+
+    // Field can't be NOT NULL on an table with existing data.
+    $field = array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+    );
+
+    // Loop through each one.
+    foreach ($entities as $entity_type => $entity) {
+      $entity_keys = $entity->getKeys();
+
+      // Get the field names used as keys.
+      $field_id = $entity_keys['id'];
+      $field_revision = $entity_keys['revision'];
+
+      // Get the tables name used for base table and revision table.
+      $table_base = ($entity->isTranslatable()) ? $entity->getDataTable() : $entity->getBaseTable();
+      $table_revision = ($entity->isTranslatable()) ? $entity->getRevisionDataTable() : $entity->getRevisionTable();
+
+      // Block content definition doesn't include the revision field table.
+      // So get it.
+      $tables = $entity_manager->getStorage($entity_type)
+        ->getTableMapping()
+        ->getTableNames();
+
+      if (!$table_revision && in_array($entity_type . '_field_revision', $tables)) {
+        $table_revision = $entity_type . '_field_revision';
+      }
+
+      $results = array();
+      // Pull data from the old table.
+      $old_data_table = $entity_type . '__workspace';
+
+      if ($schema->tableExists($old_data_table)){
+        $results = $connection->select($old_data_table)
+          ->fields($old_data_table, array('entity_id', 'workspace_target_id'))
+          ->execute()->fetchAll();
+      }
+
+      if ($schema->tableExists($table_base)) {
+        if (!$schema->fieldExists($table_base, 'workspace')) {
+          // Add new field to the base table.
+          $schema->addField($table_base, 'workspace', $field);
+        }
+
+        foreach ($results as $result) {
+          // Add the value to the new column.
+          $connection->update($table_base)
+            ->fields(array('workspace' => $result->workspace_target_id))
+            ->condition($field_id, $result->entity_id, '=')
+            ->execute();
+        }
+      }
+
+      if ($schema->tableExists($old_data_table)) {
+        // Drop old table.
+        $schema->dropTable($old_data_table);
+      }
+
+      $results = array();
+      // Pull data from old table.
+      $old_revision_table = $entity_type . '_revision__workspace';
+
+      if ($schema->tableExists($old_revision_table)) {
+        $results = $connection->select($old_revision_table)
+          ->fields($old_revision_table, array(
+            'entity_id,',
+            'revision_id',
+            'workspace_target_id'
+          ))
+          ->execute();
+      }
+
+      if ($schema->tableExists($table_revision)) {
+        if (!$schema->fieldExists($table_revision, 'workspace')) {
+          // Add new field to the field revision table.
+          $schema->addField($table_revision, 'workspace', $field);
+        }
+
+        foreach ($results as $result) {
+          // Add data to the revision table.
+          $connection->update($table_revision)
+            ->fields(array('workspace' => $result->workspace_target_id))
+            ->condition($field_id, $result->entity_id, '=')
+            ->condition($field_revision, $result->revision_id)
+            ->execute();
+        }
+      }
+
+      if ($schema->tableExists($old_revision_table)) {
+        // Drop old table.
+        $schema->dropTable($old_revision_table);
+      }
+    }
+  }
+}
+
+/**
+ * Update user entity type to non-multiversionable.
+ */
+function multiversion_update_8004() {
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  $changes = $update_manager->getChangeSummary();
+  // Check if user entity type has new changes.
+  if (isset($changes['user'])) {
+    /** @var \Drupal\Core\Entity\EntityTypeManager $entity_type_manager */
+    $entity_type_manager = \Drupal::service('entity_type.manager');
+    $storage = $entity_type_manager->getStorage('user');
+    $entity_type = $storage->getEntityType();
+    $database = \Drupal::database();
+    try {
+      $entity_manager = \Drupal::entityManager();
+      // Create a new migration and migrate user entities to the temporary storage.
+      $migration = MultiversionMigration::create(\Drupal::getContainer(), $entity_manager);
+      $migration->installDependencies();
+      $migration->migrateContentToTemp($entity_type);
+      // Remove all data from the old storage.
+      $migration->emptyOldStorage($entity_type, $storage);
+
+      // Delete revision tables that after applying updates doesn't get deleted.
+      $tables_to_delete = ['user_revision__roles', 'user_revision__user_picture'];
+      foreach ($tables_to_delete as $table_name) {
+        if ($database->schema()->tableExists($table_name)) {
+          $database->schema()->dropTable($table_name);
+        }
+      }
+
+      // Apply new updates.
+      $migration->applyNewStorage();
+      // Migrate content from the temporary storage to the new storage.
+      $migration->migrateContentFromTemp($entity_type);
+      $migration->cleanupMigration('user__to_tmp');
+      $migration->cleanupMigration('user__from_tmp');
+      $migration->uninstallDependencies();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('multiversion')->error($e->getMessage());
+    }
+  }
+}

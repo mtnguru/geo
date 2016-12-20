@@ -1,0 +1,6 @@
+services:
+  realname.config_cache_tag:
+    class: Drupal\realname\EventSubscriber\ConfigCacheTag
+    arguments: ['@cache_tags.invalidator']
+    tags:
+      - { name: event_subscriber }

@@ -2,8 +2,8 @@
 /bin
 
 # Ignore non-custom parts of Drupal.
-/docroot/core
-/docroot/modules/contrib
+#/docroot/core
+#/docroot/modules/contrib
 /docroot/profiles/contrib
 /docroot/themes/contrib
 /docroot/sites/default/files

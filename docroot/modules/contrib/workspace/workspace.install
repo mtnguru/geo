@@ -1,0 +1,43 @@
+<?php
+
+use Drupal\multiversion\Entity\Workspace;
+
+/**
+ * Implementation of hook_install().
+ */
+function workspace_install() {
+  // Set workspace earlier to alter entities before anyone else does.
+  module_set_weight('workspace', 10);
+
+  // Add pointers for all existing workspaces.
+  foreach (Workspace::loadMultiple() as $workspace) {
+    \Drupal::service('workspace.entity_operations')->workspaceInsert($workspace);
+  }
+
+  $default_workspace_id = \Drupal::getContainer()->getParameter('workspace.default');
+  /** @var \Drupal\multiversion\Entity\WorkspaceInterface $stage */
+  $stage = Workspace::create(['machine_name' => 'stage', 'label' => 'Stage', 'type' => 'basic']);
+  $stage->set('upstream', $default_workspace_id);
+  $stage->save();
+
+  // allow workspace entity route alterations
+  \Drupal::service('entity_type.manager')->clearCachedDefinitions();
+  \Drupal::service('router.builder')->rebuild();
+}
+
+/**
+ * Allow "administer deployment" roles access to the Toolbar Update button.
+ */
+function workspace_update_8101() {
+  if (\Drupal::moduleHandler()->moduleExists('deploy')) {
+    $roles = \Drupal::entityTypeManager()
+      ->getStorage('user_role')
+      ->loadMultiple();
+    foreach ($roles as $role) {
+      if ($role->hasPermission('administer deployments')) {
+        $role->grantPermission('update any workspace from upstream');
+        $role->save();
+      }
+    }
+  }
+}

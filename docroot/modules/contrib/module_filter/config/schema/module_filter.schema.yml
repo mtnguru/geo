@@ -1,0 +1,30 @@
+module_filter.settings:
+  type: mapping
+  label: Settings
+  mapping:
+    module_filter_visual_aid:
+      type: boolean
+    module_filter_hide_empty_tabs:
+      type: boolean
+    module_filter_dynamic_save_position:
+      type: boolean
+    module_filter_use_url_fragment:
+      type: boolean
+    module_filter_use_switch:
+      type: boolean
+    module_filter_set_focus:
+      type: boolean
+    module_filter_track_recent_modules:
+      type: boolean
+    module_filter_remember_active_tab:
+      type: boolean
+    module_filter_remember_update_state:
+      type: boolean
+    module_filter_tabs:
+      type: boolean
+    module_filter_count_enabled:
+      type: boolean
+    module_filter_recent_modules:
+      type: sequence
+      sequence:
+        - type: integer

@@ -1,0 +1,7 @@
+module_filter.settings:
+  path: '/admin/config/user-interface/modulefilter'
+  defaults:
+    _form: '\Drupal\module_filter\Form\ModuleFilterSettingsForm'
+    _title: 'Module filter'
+  requirements:
+    _permission: 'administer module filter'

@@ -1,0 +1,70 @@
+drupal.module_filter:
+  version: VERSION
+  js:
+    js/module_filter.js: { }
+  css:
+    theme:
+      css/module_filter.css: { }
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.cookie
+
+drupal.module_filter.module:
+  version: VERSION
+  css:
+    theme:
+      css/modules.css: { }
+
+drupal.module_filter.modules:
+  version: VERSION
+  js:
+    js/modules.js: { }
+  dependencies:
+    - module_filter/drupal.module_filter
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.once
+
+drupal.module_filter.tab:
+  version: VERSION
+  js:
+    js/module_filter_tab.js: { }
+  css:
+    theme:
+      css/module_filter_tab.css: { }
+  dependencies:
+    - module_filter/drupal.module_filter
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    #- core/jquery.bbq
+    - core/jquery.once
+
+drupal.module_filter.dynamic_position:
+  version: VERSION
+  js:
+    js/dynamic_position.js: { }
+  css:
+    theme:
+      css/dynamic_position.css: { }
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+
+drupal.module_filter.update_status:
+  version: VERSION
+  js:
+    js/update_status.js: { }
+  css:
+    theme:
+      css/update_status.css: { }
+  dependencies:
+    - module_filter/drupal.module_filter
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.once

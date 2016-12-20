@@ -1,0 +1,23 @@
+{
+  "name": "drupal/module_filter",
+  "description": "Configure how the modules page looks and acts",
+  "type": "drupal-module",
+  "homepage": "https://www.drupal.org/project/module_filter",
+  "authors": [
+    {
+      "name": "Sergey Krasulevskiy",
+      "homepage": "https://www.drupal.org/u/skrasulevskiy",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Alex Shipilov",
+      "homepage": "https://www.drupal.org/u/alexshipilov",
+    }
+  ],
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/module_filter"
+  },
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "require": {}
+}

@@ -1,0 +1,12 @@
+module_filter_visual_aid: true
+module_filter_hide_empty_tabs: false
+module_filter_dynamic_save_position: true
+module_filter_use_url_fragment: true
+module_filter_use_switch: true
+module_filter_set_focus: true
+module_filter_track_recent_modules: true
+module_filter_remember_active_tab: true
+module_filter_remember_update_state: false
+module_filter_tabs: true
+module_filter_count_enabled: true
+module_filter_recent_modules: {  }
