@@ -95,6 +95,7 @@ class Image extends MediaTypeBase {
         'aperture' => $this->t('Aperture value'),
         'focal_length' => $this->t('Focal length'),
         'geolocation' => $this->t('Geo Location'),
+        'dimensions' => $this->t('Dimensions'),
         'file_size' => $this->t('File Size'),
       );
     }
@@ -129,6 +130,10 @@ class Image extends MediaTypeBase {
       case 'size':
         $size = $file->getSize();
         return $size ? $size : FALSE;
+
+      case 'dimensions':
+        return $image->getWidth() . 'x' . $image->getHeight();
+
     }
 
     if (!empty($this->configuration['gather_exif']) && function_exists('exif_read_data')) {

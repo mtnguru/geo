@@ -2,6 +2,13 @@ body {
 //width: 250px;
 }
 
+.block-views {
+  .view-filters {
+    display: none;
+  }
+}
+
+
 .view-media-gallery {
   .view-filters {
     background: #ebe5d5;
@@ -24,10 +31,45 @@ body {
     overflow: hidden;
 
     time {
-      font-size: 75%;
+      font-size: 85%;
     }
     .im-image {
       border-radius: 4px;
+      margin: 0 auto;
     }
+
+
+    .views-field-name {
+      text-align: center;
+      height: 2.5em;
+    }
+
+    .views-field-field-photographer,
+    .views-field-field-group {
+      font-size: 80%;
+    }
+    .views-field-nothing {
+      font-size: 80%;
+    }
+    .views-field-field-production-date {
+      font-style: italic;
+      font-size: 80%;
+      text-align: center;
+    }
+    .views-field-image {
+      > div {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.node__meta {
+  .js-form-item {
+    display: none;
+  }
+  > span {
+    font-size: 80%;
+    font-style: italic;
   }
 }

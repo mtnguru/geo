@@ -1,0 +1,88 @@
+
+.views-element-container {
+  .view-filters {
+    display: none;
+  }
+}
+
+form#views-exposed-form-media-gallery-page-1,
+form.views-exposed-form {
+  .form--inline .form-item {
+  }
+  .filter-wrapper {
+//  display: block;
+    margin: 2px 0;
+    padding: 0;
+    width: 100%;
+    label {
+      width: 40%;
+      font-weight: bold;
+    }
+    .form-item {
+      display: inline;
+      margin: .25em 0 .25em .25em;
+      input {
+        width: 56%;
+        padding: 3px 4px;
+      }
+      select {
+        font-size: 95%;
+        width: 14em;
+        padding: 4px 2px;
+      }
+    }
+    .form-operator {
+      margin-left: 5px;
+    }
+    .form-item-field__outer-electrons-value-op,
+    .form-item-field__inner-electrons-value-op,
+    .form-item-field__p-value-op,
+    .form-item-field-period-value-op {
+      .form-operator {
+        margin-left: 1px;
+      }
+    }
+
+    .minmax-wrapper {
+      display: inline-block;
+      label {
+        margin: 0 3px;
+        width: auto;
+        font-weight: normal;
+      }
+    }
+  }
+}
+
+.view-content {
+  margin-top: 1em;
+  table.views-table {
+    font-size: 13px;
+    th {
+      padding: 2px 5px;
+      font-weight: normal;
+      font-size: 100%;
+      border: solid 1px $color-border;
+      background: $color-button;
+      a {
+        color: white;
+      }
+      &.views-field-field-atomic-number,
+      &.views-field-field__p {
+        text-align: center;
+      }
+    }
+    td {
+      border: solid 1px $az-color-border;
+      padding: 2px 5px;
+      &.is-active {
+        background: $color-active;
+      }
+      &.views-field-field-atomic-number,
+      &.views-field-field__p {
+        text-align: center;
+      }
+    }
+  }
+}
+
